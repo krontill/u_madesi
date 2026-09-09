@@ -1,0 +1,10 @@
+{
+  "name": "u-madesi-ai-images",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "ai-images": "node tools/ai-images/generate.mjs",
+    "test": "node --test tools/ai-images"
+  }
+}
