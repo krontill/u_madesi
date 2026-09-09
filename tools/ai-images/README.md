@@ -11,6 +11,7 @@
 Текст абзаца, который станет контекстом для картинки.
 
 <!-- ai-image: event-loop -->
+![Event Loop](../../technical/media/event-loop.png)
 ```
 
 `event-loop` — это `id`. Он же станет именем файла: `technical/media/event-loop.png`.
@@ -27,6 +28,7 @@ style: hand-drawn
 instruction: emphasize the boundary between JS runtime and browser APIs
 alt: How the event loop works
 -->
+![How the event loop works](../../technical/media/event-loop.png)
 ```
 
 Поддерживаемые поля: `id` (обязательное), `kind`, `style`, `instruction`, `alt` (необязательные).

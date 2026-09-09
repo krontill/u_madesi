@@ -1,4 +1,25 @@
 {
   "version": 1,
-  "images": {}
+  "images": {
+    "wizard2": {
+      "hash": "7056a4cf2e0b2d07b512d40c3f8226493a2b84b9534d7f247a972a09b642c3b2",
+      "file": "technical/media/wizard2.png",
+      "generatedAt": "2026-09-09T13:58:36.586Z"
+    },
+    "wizard": {
+      "hash": "3273524cc082c860590d0a617a6ff3e8924f26a9475b2da41c97edf23275e60d",
+      "file": "technical/media/wizard.png",
+      "generatedAt": "2026-09-09T13:59:11.153Z"
+    },
+    "clown-glasses": {
+      "hash": "8f704d83729aac9dd09676367e880d0b9b2629faf438c71e29002d5055d788c5",
+      "file": "technical/media/clown-glasses.png",
+      "generatedAt": "2026-09-09T13:59:55.904Z"
+    },
+    "event-loop": {
+      "hash": "a012e4be777e42d14105bef8fc1680da154dc3fa27db8f8e692b1c7a672fe67b",
+      "file": "technical/media/event-loop.png",
+      "generatedAt": "2026-09-09T14:01:08.817Z"
+    }
+  }
 }
