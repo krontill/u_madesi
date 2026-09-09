@@ -1,4 +1,4 @@
-name: AI image generation (PR)
+name: AI image generation
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   generate:
@@ -32,19 +31,47 @@ jobs:
           fi
 
       - name: Generate images
+        if: hashFiles('tools/ai-images/generate.mjs') != ''
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node tools/ai-images/generate.mjs --base "${{ steps.base.outputs.sha }}" --head "${{ github.sha }}"
 
-      - name: Open pull request with generated images
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: "chore: generate ai-image illustrations [skip ai-image]"
-          branch: ai-images/${{ github.ref_name }}-${{ github.sha }}
-          base: ${{ github.ref_name }}
-          title: "Generated illustrations for ai-image tags (${{ github.ref_name }})"
-          body: Automatically generated illustrations for `<!-- ai-image -->` tags added in ${{ github.sha }}.
-          add-paths: |
-            technical/media/**
-            *.md
+      - name: Skip generation when generator script is missing
+        if: hashFiles('tools/ai-images/generate.mjs') == ''
+        run: echo "Skipping AI image generation because tools/ai-images/generate.mjs is not present in this branch."
 
+      - name: Stage and commit generated images
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add technical/media '*.md'
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "chore: generate ai-image illustrations [skip ai-image]"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "branch=ai-images/${{ github.ref_name }}-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Push directly to the branch
+        id: push
+        if: steps.commit.outputs.changed == 'true'
+        continue-on-error: true
+        run: git push origin HEAD:"${{ github.ref_name }}"
+
+      - name: Push generated changes to a fallback branch
+        if: steps.commit.outputs.changed == 'true' && steps.push.outcome == 'failure'
+        run: git push origin HEAD:"${{ steps.commit.outputs.branch }}"
+
+      - name: Report manual pull request instructions
+        if: steps.commit.outputs.changed == 'true' && steps.push.outcome == 'failure'
+        run: |
+          {
+            echo "Direct push to \`${{ github.ref_name }}\` failed, so the generated changes were pushed to \`${{ steps.commit.outputs.branch }}\`."
+            echo
+            echo "GitHub Actions is not allowed to open the pull request automatically in this repository."
+            echo
+            echo "Create the pull request manually:"
+            echo "https://github.com/${{ github.repository }}/compare/${{ github.ref_name }}...${{ steps.commit.outputs.branch }}?expand=1"
+          } >> "$GITHUB_STEP_SUMMARY"
