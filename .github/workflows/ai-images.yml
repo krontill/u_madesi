@@ -31,9 +31,14 @@ jobs:
           fi
 
       - name: Generate images
+        if: hashFiles('tools/ai-images/generate.mjs') != ''
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node tools/ai-images/generate.mjs --base "${{ steps.base.outputs.sha }}" --head "${{ github.sha }}"
+
+      - name: Skip generation when generator script is missing
+        if: hashFiles('tools/ai-images/generate.mjs') == ''
+        run: echo "Skipping AI image generation because tools/ai-images/generate.mjs is not present in this branch."
 
       - name: Stage and commit generated images
         id: commit
