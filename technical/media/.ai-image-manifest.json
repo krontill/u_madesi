@@ -1,4 +1,10 @@
 {
   "version": 1,
-  "images": {}
+  "images": {
+    "сенбернар": {
+      "hash": "8c7c165bbe49c8df7d209e683d2a462b998dfdfb3759067cc8d210b6351f0e82",
+      "file": "technical/media/сенбернар.png",
+      "generatedAt": "2026-09-09T14:08:29.327Z"
+    }
+  }
 }
