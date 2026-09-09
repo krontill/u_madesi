@@ -7,6 +7,7 @@ kind: woman
 style: hand-drawn
 instruction: 100% belarusian girl
 -->
+![Appi](media/appi.png)
 * Лёня - украинский ассистент.
 Родом из Донецка
 * Слава (Всевсеслав) - безработный друг Аппи. Кличка - "Чарик"
