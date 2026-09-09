@@ -1,0 +1,72 @@
+name: AI image generation
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[skip ai-image]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Determine diff base
+        id: base
+        run: |
+          if git cat-file -e "${{ github.event.before }}" 2>/dev/null; then
+            echo "sha=${{ github.event.before }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=$(git merge-base origin/main HEAD || echo HEAD~1)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate images
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node tools/ai-images/generate.mjs --base "${{ steps.base.outputs.sha }}" --head "${{ github.sha }}"
+
+      - name: Stage and commit generated images
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add technical/media '*.md'
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "chore: generate ai-image illustrations [skip ai-image]"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "branch=ai-images/${{ github.ref_name }}-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Push directly to the branch
+        id: push
+        if: steps.commit.outputs.changed == 'true'
+        continue-on-error: true
+        run: git push origin HEAD:"${{ github.ref_name }}"
+
+      - name: Push generated changes to a fallback branch
+        if: steps.commit.outputs.changed == 'true' && steps.push.outcome == 'failure'
+        run: git push origin HEAD:"${{ steps.commit.outputs.branch }}"
+
+      - name: Report manual pull request instructions
+        if: steps.commit.outputs.changed == 'true' && steps.push.outcome == 'failure'
+        run: |
+          {
+            echo "Direct push to \`${{ github.ref_name }}\` failed, so the generated changes were pushed to \`${{ steps.commit.outputs.branch }}\`."
+            echo
+            echo "GitHub Actions is not allowed to open the pull request automatically in this repository."
+            echo
+            echo "Create the pull request manually:"
+            echo "https://github.com/${{ github.repository }}/compare/${{ github.ref_name }}...${{ steps.commit.outputs.branch }}?expand=1"
+          } >> "$GITHUB_STEP_SUMMARY"
